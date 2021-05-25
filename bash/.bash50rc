@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # Bash50: 50 lines of pure Bash for safer scripts and better logs!
-# Author:  Uwe Jugel, @ubunatic
-# License: MIT
-# Website: https://github.com/ubunatic/scripts/bash
-# Usage:
-#   A) Copy and paste these functions, options, and traps to your shell script.
-#   B) Copy this file and `source` it in your shell script.
+#
+# Author:       Uwe Jugel, @ubunatic
+# License:      MIT
+# Website:      https://github.com/ubunatic/scripts#bash50
+# Installation: curl -o .bash50rc https://raw.githubusercontent.com/ubunatic/scripts/main/bash/.bash50rc
+# Usage:        Copy+paste all functions, options, and traps or just `source` this file.
 
-# First, we need some nifty little helpers for having nice logs error messages.
+# First, we need some nifty little helpers for having nice logs and error messages.
+err()   {                     echo "$(dt): [ERROR] $*"  1>&2; }
+log()   {                     echo "$(dt): [INFO] $*"   1>&2; }
+debug() { test -z "$DEBUG" || echo "$(dt): [DEBUG] $*"  1>&2; }
 dt()    { date +"%Y-%m-%d %H:%M:%S"; }
-err()   { echo "$(dt): [ERROR] $*" 1>&2; }
-log()   { echo "$(dt): [INFO] $*"  1>&2; }
-fail()  { err "$*, code=$? at $_bash50_trace"; exit 1; }
-trace() { if test "$1" = "0"; then _bash50_trace="\`$2\` in $0:$3"; fi; }
 
 # Second, let's make our shell script a bit safer by failing fast; just like `make`.
 set -o errexit    # exit on any error in the script (does NOT work inside functions!)
@@ -20,22 +19,22 @@ set -o pipefail   # consider errors from failed subcommands of a pipe
 set -o functrace  # enabled debug info in funcs and subshells
 set -o errtrace   # enable error tracing in funcs and subshells
 
-# Third, enable debug traces when using `script || fail "message"` statements and
-# also setup an ERR trap with a generic message to provide consistent tracing output.
-# Tracing is done by a DEBUG trap that "traces" Bash's $BASH_COMMAND and $LINENO.
+# Third, enable error traces when using `script || fail "message"` statements and
+# also setup an ERR trap with a generic message to provide consistent error messages.
+# A `trace` function and a DEBUG trap are used to store the $BASH_COMMAND and $LINENO
+# of the command to be executed next until there is an unsuccessful command.
+fail()  { err "$*, code=$? at $_bash50_trace"; exit 1; }
+trace() { if test "$1" = "0"; then _bash50_trace="\`$2\` in $0:$3"; fi; }
 trap 'fail "command failed"' ERR
 trap 'trace "$?" "$BASH_COMMAND" "$LINENO" "$FUNCNAME"' DEBUG
 
 # That's all we need! Our Bash script is now a bit safer and has nice error logs.
 
-# Bonus: Allow setting vars from vars, without using unsafe `eval`.
-# Usage: `var "$name=$value"` (supports "=" inside the value)
-var() {
-    local lhs=$(echo "$1" | cut -d"=" -f 1) rhs=$(echo "$1" | cut -d"=" -f 2-)
-    test -n "$lhs" || fail "variable name not set for '$1'"
-    export "$lhs"="$rhs" # use export to set var by $varname
-    log "setting variable $lhs='$rhs'"
-}
+# Bonus 1: `var` function for dynamic vars `$k=v` with white-friendly assignment `k = v`
+# Usage: var [ key=val | key = val | "$key"="$val" | "$key" = "$val" ]
+var() { test $# -lt 4 && export "$1$2$3" && debug "setting $*" || fail "var: invalid number of arguments"; }
+
+# TODO: Add more cool stuff here; readable one-liners allowed.
 
 # STOP: If this file gets longer than 50 lines of code, incl. comments and whitespace,
 #       then it is no longer a "script"! Use a real programming language or build system.

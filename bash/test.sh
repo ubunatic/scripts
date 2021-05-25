@@ -2,7 +2,7 @@
 source "`dirname $0`/.bash50rc"
 
 log_ok()  { log "[Test:OK] $*"; }
-log_err() { log "[Test:FAILED] $*"; }
+log_err() { err "[Test:FAILED] $*"; }
 
 test_mustfail() {
     # example of a failing test (try running `./bake.sh mustfail` to see the output)
@@ -18,18 +18,30 @@ test_errfunc() {
 }
 
 test_var() {
-    var "my_var=123"
-    test "$my_var" = "123" || fail 'expected value "123"'
+    var "v=123"    ; test "$v" = "123"   || fail "expected value '123', got '$v'"
+    var v=x=y=z    ; test "$v" = "x=y=z" || fail "expected value to preseve equal signs, got $v"
+    var v = 1=2=3  ; test "$v" = "1=2=3" || fail "expected value to be stripped, got $v"
+    var v=         ; test -z "$v"        || fail "expected empty value, got $v"
+    var v =        ; test -z "$v"        || fail "expected empty value, got $v"
+    var v=1; var v ; test "$v" = "1"     || fail "expected non-empty value, got $v"
 }
 
-test_vareq() {
-    var "my_var=x=y=z"
-    test "$my_var" = "x=y=z" || fail 'expected value to preseve equal signs'
+test_log() {
+            log   "TEST" 2>&1 | grep "INFO.*TEST"  || fail "bad info log"
+            err   "TEST" 2>&1 | grep "ERROR.*TEST" || fail "bad error log"
+    DEBUG=1 debug "TEST" 2>&1 | grep "DEBUG.*TEST" || fail "bad debug log"
+            debug "TEST" 2>&1 | grep ''            && fail "expected empty debug log" || true
+
+}
+
+test_debug() {
+    DEBUG=1  var a=1 2>&1 | grep "setting" || fail "var must use debug log"
+    DEBUG='' var a=1 2>&1 | grep ""        && fail "var must use debug log" || true
 }
 
 if test $# -eq 0
-then tests="var vareq errfunc"
-else tests="$*"
+then var tests = "var errfunc log debug"
+else var tests = "$*"
 fi
 
 for t in $tests; do "test_$t" && log_ok "$t" || log_err "test failed $t"; done
