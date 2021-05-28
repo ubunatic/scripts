@@ -22,15 +22,16 @@ set -o errtrace   # enable error tracing in funcs and subshells
 # Third, enable error traces when using `script || fail "message"` statements and
 # also setup an ERR trap with a generic message to provide consistent error messages.
 # A `trace` function and a DEBUG trap are used to store the $BASH_COMMAND and $LINENO
-# of the command to be executed next until there is an unsuccessful command.
-fail()  { err "$*, code=$? at $_bash50_trace"; exit 1; }
+# of the next command to be executed, until there is an unsuccessful command.
+fail()  { local c=$? t="$_bash50_trace"; err "$*, code=$c at $t"; exit $c; }
 trace() { if test "$1" = "0"; then _bash50_trace="\`$2\` in $0:$3"; fi; }
 trap 'fail "command failed"' ERR
 trap 'trace "$?" "$BASH_COMMAND" "$LINENO" "$FUNCNAME"' DEBUG
 
+
 # That's all we need! Our Bash script is now a bit safer and has nice error logs.
 
-# Bonus 1: `var` function for dynamic vars `$k=v` with white-friendly assignment `k = v`
+# Bonus 1: `var` function for dynamic vars `$k=v` with whitespace-friendly assignment `k = v`
 # Usage: var [ key=val | key = val | "$key"="$val" | "$key" = "$val" ]
 var() { test $# -lt 4 && export "$1$2$3" && debug "setting $*" || fail "var: invalid number of arguments"; }
 
