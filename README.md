@@ -1,9 +1,9 @@
-# scripts
+# Scripts
 Collection of scripts used across programming languages, projects, and systems
 
 ## Bash50
-[Bash50](bash/.bash50rc) provides (less than) 50 lines of code for your Bash
-scripts to make them a bit safer and provide better error and debug messages.
+[Bash50](bash/.bash50rc) provides (less than) 50 lines of readable code for your
+Bash scripts to make them a bit safer and provide better error and debug messages.
 
 ### Installation
 ```bash
@@ -34,7 +34,7 @@ debug "a=$a b=$b"
 
 true || fail "did not expect true to fail"
 fail "must fail and exit the script"
-# 2021-05-24 23:14:22: [ERROR] must fail and exit the script, code=1 at `false` in bash:19
+# 2021-05-24 23:14:22: [ERROR] must fail and exit the script, code=1 at `false` in script.sh:19
 # exit
 ```
 Also see the [tests](bash/test.sh) for more usage examples.
