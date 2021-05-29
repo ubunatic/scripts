@@ -30,13 +30,12 @@ test_log() {
             log   "TEST" 2>&1 | grep "INFO.*TEST"  || fail "bad info log"
             err   "TEST" 2>&1 | grep "ERROR.*TEST" || fail "bad error log"
     DEBUG=1 debug "TEST" 2>&1 | grep "DEBUG.*TEST" || fail "bad debug log"
-            debug "TEST" 2>&1 | grep ''            && fail "expected empty debug log" || true
-
+  ! DEBUG=  debug "TEST" 2>&1 | grep "DEBUG"       || fail "expected empty debug log"
 }
 
 test_debug() {
-    DEBUG=1  var a=1 2>&1 | grep "setting" || fail "var must use debug log"
-    DEBUG='' var a=1 2>&1 | grep ""        && fail "var must use debug log" || true
+    DEBUG=1 var a=1 2>&1 | grep "setting" || fail "var must show debug log"
+  ! DEBUG=  var a=1 2>&1 | grep "setting" || fail "var must NOT show debug log"
 }
 
 if test $# -eq 0
